@@ -24,10 +24,16 @@ join role on e1.role_id = role.id
 join department on role.department_id = department.id
 left join employee e2 on e1.manager_id = e2.id;
 
--- select 
---   concat(e1.first_name, ' ', e1.last_name) as "Name",
---   concat(e2.first_name, ' ', e2.last_name) as "Manager"
---   from employee e1
---   left join employee e2 on e1.manager_id = e2.id;
+select 
+  concat(e1.first_name, ' ', e1.last_name) as "Name",
+  concat(e2.first_name, ' ', e2.last_name) as "Manager"
+  from employee e1
+  left join employee e2 on e1.manager_id = e2.id;
+
+select
+  e1.manager_id as "value",
+  concat(e2.first_name, ' ', e2.last_name) as "name"
+  from employee e1
+  inner join employee e2 on e1.manager_id = e2.id;
 
 

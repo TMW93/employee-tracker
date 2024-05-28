@@ -16,41 +16,28 @@ console.log('Connected to the employees_db database!')
 pool.connect();
 
 //this function gets all employee names from the db
-const getEmployees = async () => {
-  let eArray = [];
-  const queryDB = `select concat(employee.first_name, ' ', employee.last_name) as "name" from employee;`;
+const getManagers = async () => {
+  const queryDB = `select id, concat(employee.first_name, ' ', employee.last_name) as "name" from employee;`;
   const employee = await pool.query(queryDB);
-  for(let i = 0; i < (employee.rows).length; i++) {
-    eArray[i] = employee.rows[i].name;
-  }
-  return eArray;
+  return employee.rows;
 }
 
 //this function gets all role names from the db 
 const getRoles = async () => {
-  let rArray = [];
-  const queryDB = `select title from role;`;
+  const queryDB = `select id as "value", title as "name" from role;`;
   const roles = await pool.query(queryDB);
-  for(let i = 0; i < (roles.rows).length; i++) {
-    rArray[i] = roles.rows[i].title;
-  }
-  return rArray;
+  return roles.rows;
 }
 
 //this function gets all department names from the db
 const getDept = async () => {
-  let dArray = [];
-  const queryDB = `select name from department;`;
+  const queryDB = `select id as "value", name from department;`;
   const departments = await pool.query(queryDB);
-  for(let i = 0; i < (departments.rows).length; i++) {
-    dArray[i] = departments.rows[i].name;
-  }
-  return dArray;
+  return departments.rows;
 }
 
 //this function adds employess if prompt is chosen
-const addEmployee = () => {
-  const roles = getRoles();
+const addEmployee = async () => {
   const prompter  = [
     {
       type: `input`,
@@ -65,7 +52,8 @@ const addEmployee = () => {
     {
       type: `list`,
       message: `What is the employee's role?`,
-      choices: [`Sales Lead`, `Salesperson`, `Lead Engineer`, `Software Engineering`, `Account Manager`, `Accountant`, `Legal Team Lead`, `Lawyer`],
+      // choices: [`Sales Lead`, `Salesperson`, `Lead Engineer`, `Software Engineering`, `Account Manager`, `Accountant`, `Legal Team Lead`, `Lawyer`],
+      choices: await getRoles(),
       name: `role_id`,
     },
     {
@@ -80,7 +68,7 @@ const addEmployee = () => {
 }
 
 //this function adds roles if prompt is chosen
-const addRole = () => {
+const addRole = async () => {
   const prompter = [
     {
       type: `input`,
@@ -95,7 +83,8 @@ const addRole = () => {
     {
       type: `list`,
       message: `What department does the role belong to?`,
-      choices: [`Sales`, `Engineering`, `Finance`, `Legal`],
+      // choices: [`Sales`, `Engineering`, `Finance`, `Legal`],
+      choices: await getDept(),
       name: `department_id`,
     },
   ]
@@ -208,14 +197,14 @@ const main = async () => {
 
         // console.log(userInputsEmployee);
 
-        await pool.query(`insert into employee (first_name, last_name, role_id, manager_id) values (${userInputsEmployee.first_name}, ${userInputsEmployee.last_name}, ${userInputsEmployee.role_id}, ${userInputsEmployee.manager_id});`);
+        pool.query(`insert into employee (first_name, last_name, role_id, manager_id) values (${userInputsEmployee.first_name}, ${userInputsEmployee.last_name}, ${userInputsEmployee.role_id}, ${userInputsEmployee.manager_id});`);
         break;
       //adding a role
       case `Add Role`:
         const userInputsRole = await addRole();
 
         //setting the department id to its corresponding id
-        switch(userInputsRole) {
+         switch(userInputsRole) {
           case `Sales`:
             userInputsRole.department_id = 1;
             break;
@@ -229,14 +218,14 @@ const main = async () => {
             userInputsRole.department_id = 4;
             break;
         }
-
-        await pool.query(`insert into role (title, salary, department_id) values (${userInputsRole.title}, ${userInputsRole.salary}, ${userInputsRole.department_id});`);
+        // console.log(`insert into role (title, salary, department_id) values ('${userInputsRole.title}', ${userInputsRole.salary}, ${userInputsRole.department_id});`);
+        pool.query(`insert into role (title, salary, department_id) values ('${userInputsRole.title}', ${userInputsRole.salary}, ${userInputsRole.department_id});`);
 
         break;
       //adding a department
       case `Add Department`:
         const userInputsDept = await addDept();
-        await pool.query(`insert into department (name) values ('${userInputsDept.name}');`);
+        pool.query(`insert into department (name) values ('${userInputsDept.name}');`);
         break;  
       //user selecting quit
       case `Quit`:
@@ -246,12 +235,4 @@ const main = async () => {
 }
 
 main();
-
-// app.use((req, res) => {
-//   res.status(404).end();
-// });
-
-// app.listen(PORT, () => {
-//   console.log(`Server running on ${PORT}`);
-// });
 
