@@ -138,6 +138,20 @@ const updateEmployee = async () => {
   return inquirer.prompt(prompter);
 }
 
+//this function gets a managers id if prompt is chosen
+const byManager = async () => {
+  const prompter = [
+    {
+      type: `list`,
+      message: `Choose which manager you'd like to view the employees of:`,
+      choices: await getManagers(),
+      name: `manager_id`,
+    },
+  ]
+
+  return inquirer.prompt(prompter);
+}
+
 const main = async () => {
   let choice = ``;
   while(choice !== `Quit`) {
@@ -154,7 +168,7 @@ const main = async () => {
       {
         type: `list`,
         message: `What would you like to do?`,
-        choices: [`View All Employees`, `Add Employee`, `Update Employee Role`, `View All Roles`, `Add Role`, `View All Departments`, `Add Department`, `Update Employee Role`, `Quit`],
+        choices: [`View All Employees`, `Add Employee`, `Update Employee Role`, `View All Roles`, `Add Role`, `View All Departments`, `Add Department`, `Update Employee Role`, `View Employees By Manager`, `Quit`],
         name: `userChoice`,
       }
     ]);
@@ -217,6 +231,19 @@ const main = async () => {
         // console.log(userInputUpdate.role_id);
         
         pool.query(`update employee set role_id = ${userInputUpdate.role_id} where id = ${userInputUpdate.employee_id};`);
+        break;
+      //view employees by manager
+      case `View Employees By Manager`:
+        const userInputManager = await byManager();
+        // console.log(userInputManager.manager_id);
+
+        if(userInputManager.manager_id === 0) {
+          userInputManager.manager_id = null;
+        }
+
+        pool.query(`select concat(e2.first_name, ' ', e2.last_name) as "Manager", concat(e1.first_name, ' ', e1.last_name) as "Employee" from employee e1 left join employee e2 on e1.manager_id = e2.id where e2.id = ${userInputManager.manager_id};`, function(err, {rows}) {
+          console.table(rows);
+        });
         break;
       //user selecting quit
       case `Quit`:
