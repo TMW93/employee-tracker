@@ -208,6 +208,32 @@ const deleteEmployee = async () => {
   return inquirer.prompt(prompter);
 }
 
+//this function gets all department ids if prompt is chosen (budget search, includes all departments)
+const getDeptIDBudget = async () => {
+  let initDept = {
+    value: 0,
+    name: `All Departments`,
+  };
+  const queryDB = `select id as "value", name from department;`;
+  const departments = await pool.query(queryDB);
+  (departments.rows).push(initDept);
+  return departments.rows;
+}
+
+//this function gets a departments id if prompt is chosen (budget search)
+const viewBudget = async () => {
+  const prompter = [
+    {
+      type: `list`,
+      message: `Choose which department you want to view:`,
+      choices: await getDeptIDBudget(),
+      name: `department_id`,
+    }
+  ]
+
+  return inquirer.prompt(prompter);
+}
+
 //main prompter
 const main = async () => {
   let choice = ``;
@@ -225,7 +251,7 @@ const main = async () => {
       {
         type: `list`,
         message: `What would you like to do?`,
-        choices: [`View All Employees`, `Add Employee`, `Update Employee Role`, `View All Roles`, `Add Role`, `View All Departments`, `Add Department`, `Update Employee Role`, `View Employees By Manager`, `View Employees By Department`, `Remove an Employee`, `Quit`],
+        choices: [`View All Employees`, `Add Employee`, `Update Employee Role`, `View All Roles`, `Add Role`, `View All Departments`, `Add Department`, `Update Employee Role`, `View Employees By Manager`, `View Employees By Department`, `Remove an Employee`, `View Budget`, `Quit`],
         name: `userChoice`,
       }
     ]);
@@ -321,6 +347,15 @@ const main = async () => {
 
       //delete a department
 
+      //view budget
+      case `View Budget`:
+        const salary = await viewBudget();
+        // console.log(salary.department_id);
+
+        pool.query(`select department.name as "Department", sum(role.salary) as "Salary" from role join department on role.department_id = department.id where department.id = ${salary.department_id} group by department.name;`, function(err, {rows}) {
+          console.table(rows);
+        });
+        break;
       //user selecting quit
       case `Quit`:
         process.exit(0);
