@@ -351,10 +351,17 @@ const main = async () => {
       case `View Budget`:
         const salary = await viewBudget();
         // console.log(salary.department_id);
+        
+        if(salary.department_id === 0) {
+          pool.query(`select department.name as "Department", sum(role.salary) as "Salary" from role join department on role.department_id = department.id group by department.name;`, function(err, {rows}) {
+            console.table(rows);
+          });
+        } else {
+          pool.query(`select department.name as "Department", sum(role.salary) as "Salary" from role join department on role.department_id = department.id where department.id = ${salary.department_id} group by department.name;`, function(err, {rows}) {
+            console.table(rows);
+          });
+        }
 
-        pool.query(`select department.name as "Department", sum(role.salary) as "Salary" from role join department on role.department_id = department.id where department.id = ${salary.department_id} group by department.name;`, function(err, {rows}) {
-          console.table(rows);
-        });
         break;
       //user selecting quit
       case `Quit`:
