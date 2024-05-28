@@ -152,6 +152,63 @@ const byManager = async () => {
   return inquirer.prompt(prompter);
 }
 
+//this function gets a departments id if prompt is chosen (sort by department)
+const byDept = async () => {
+  const prompter = [
+    {
+      type: `list`,
+      message: `Choose which department you want to view:`,
+      choices: await getDept(),
+      name: `department_id`,
+    }
+  ]
+
+  return inquirer.prompt(prompter);
+}
+
+//this function gets a departments id if prompt is chosen (delete department)
+const deleteDept = async () => {
+  const prompter = [
+    {
+      type: `list`,
+      message: `Choose which department you want to delete:`,
+      choices: await getDept(),
+      name: `department_id`,
+    }
+  ]
+
+  return inquirer.prompt(prompter);
+}
+
+//this function gets an employees id if prompt is chosen (delete employee)
+const deleteRow = async () => {
+  const prompter = [
+    {
+      type: `list`,
+      message: `Choose which role you want to delete:`,
+      choices: await getRoles(),
+      name: `role_id`,
+    }
+  ]
+
+  return inquirer.prompt(prompter);
+}
+
+//this function gets a roles id if prompt is chosen (delete role)
+const deleteEmployee = async () => {
+  const prompter = [
+    {
+      type: `list`,
+      message: `Choose which employee you want to delete:`,
+      choices: await getEmployees(),
+      name: `employee_id`,
+    }
+  ]
+
+  return inquirer.prompt(prompter);
+}
+
+//main prompter
 const main = async () => {
   let choice = ``;
   while(choice !== `Quit`) {
@@ -168,7 +225,7 @@ const main = async () => {
       {
         type: `list`,
         message: `What would you like to do?`,
-        choices: [`View All Employees`, `Add Employee`, `Update Employee Role`, `View All Roles`, `Add Role`, `View All Departments`, `Add Department`, `Update Employee Role`, `View Employees By Manager`, `Quit`],
+        choices: [`View All Employees`, `Add Employee`, `Update Employee Role`, `View All Roles`, `Add Role`, `View All Departments`, `Add Department`, `Update Employee Role`, `View Employees By Manager`, `View Employees By Department`, `Remove an Employee`, `Quit`],
         name: `userChoice`,
       }
     ]);
@@ -245,6 +302,25 @@ const main = async () => {
           console.table(rows);
         });
         break;
+      //view employess by department
+      case `View Employees By Department`:
+        const userinputDept = await byDept();
+        // console.log(userinputDept.department_id);
+
+        pool.query(`select department.name as "Department", role.title as "Role", concat(employee.first_name, ' ', employee.last_name) as "Employee" from employee join role on employee.role_id = role.id join department on role.department_id = department.id where department.id = ${userinputDept.department_id};`, function(err, {rows}) {
+          console.table(rows);
+        });
+        break;
+      //delete an employee
+      case `Remove an Employee`:
+        const userChoiceEmployee = await deleteEmployee();
+        // console.log(userChoiceEmployee.employee_id);
+        pool.query(`delete from employee where id = ${userChoiceEmployee.employee_id}`);
+        break;
+      //delete a role
+
+      //delete a department
+
       //user selecting quit
       case `Quit`:
         process.exit(0);
