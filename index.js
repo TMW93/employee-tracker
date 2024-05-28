@@ -16,10 +16,22 @@ console.log('Connected to the employees_db database!')
 pool.connect();
 
 //this function gets all employee names from the db
+const getEmployees = async () => {
+  const queryDB = `select id as "value", concat(employee.first_name, ' ', employee.last_name) as "name" from employee;`;
+  const employees = await pool.query(queryDB);
+  return employees.rows;
+}
+
+//this function gets all manager names from the db
 const getManagers = async () => {
-  const queryDB = `select id, concat(employee.first_name, ' ', employee.last_name) as "name" from employee;`;
-  const employee = await pool.query(queryDB);
-  return employee.rows;
+  let initManagers = {
+    value: 0,
+    name: `None`,
+  };
+  const queryDB = `select e1.manager_id as "value", concat(e2.first_name, ' ', e2.last_name) as "name" from employee e1 inner join employee e2 on e1.manager_id = e2.id;`;
+  const managers = await pool.query(queryDB);
+  (managers.rows).push(initManagers);
+  return managers.rows;
 }
 
 //this function gets all role names from the db 
@@ -59,7 +71,8 @@ const addEmployee = async () => {
     {
       type: `list`,
       message: `Who is the employee's manager?`,
-      choices: [`None`, `John Doe`, `Ashley Rodriguez`, `Kunal Singh`, `Sarah Lourd`],
+      // choices: [`None`, `John Doe`, `Ashley Rodriguez`, `Kunal Singh`, `Sarah Lourd`],
+      choices: await getManagers(),
       name: `manager_id`,
     },
   ]
@@ -93,7 +106,7 @@ const addRole = async () => {
 }
 
 //this function adds departments if prompt is chosen
-const addDept = () => {
+const addDept = async () => {
   const prompter = [
     {
       type: `input`,
@@ -105,11 +118,33 @@ const addDept = () => {
   return inquirer.prompt(prompter);
 }
 
+//this function updates employee role if prompt is chosen
+const updateEmployee = async () => {
+  const prompter = [
+    {
+      type: `list`,
+      message: `Which employee's role do you want to update?`,
+      choices: await getEmployees(),
+      name: `employee_id`,
+    },
+    {
+      type: `list`,
+      message: `Which role do you want to assign the selected employee?`,
+      choices: await getRoles(),
+      name: `role_id`,
+    }
+  ]
+
+  return inquirer.prompt(prompter);
+}
+
 const main = async () => {
   let choice = ``;
   while(choice !== `Quit`) {
     // const e = await getEmployees();
     // console.log(e);
+    // const m = await getManagers();
+    // console.log(m);
     // const r = await getRoles();
     // console.log(r);
     // const d = await getDept();
@@ -119,7 +154,7 @@ const main = async () => {
       {
         type: `list`,
         message: `What would you like to do?`,
-        choices: [`View All Employees`, `Add Employee`, `Update Employee Role`, `View All Roles`, `Add Role`, `View All Departments`, `Add Department`, `Quit`],
+        choices: [`View All Employees`, `Add Employee`, `Update Employee Role`, `View All Roles`, `Add Role`, `View All Departments`, `Add Department`, `Update Employee Role`, `Quit`],
         name: `userChoice`,
       }
     ]);
@@ -148,85 +183,41 @@ const main = async () => {
       case `Add Employee`:
         const userInputsEmployee = await addEmployee();
 
-        //setting the role id to its corresponding id
-        switch(userInputsEmployee.role_id) {
-          case `Sales Lead`:
-            userInputsEmployee.role_id = 1;
-            break;
-          case `Salesperson`:
-            userInputsEmployee.role_id = 2;
-            break;
-          case `Lead Engineer`:
-            userInputsEmployee.role_id = 3;
-            break;
-          case `Software Engineering`:
-            userInputsEmployee.role_id = 4;
-            break;
-          case `Account Manager`:
-            userInputsEmployee.role_id = 5;
-            break;
-          case `Accountant`:
-            userInputsEmployee.role_id = 6;
-            break;
-          case `Legal Team Lead`:
-            userInputsEmployee.role_id = 7;
-            break;
-          case `Lawyer`:
-            userInputsEmployee.role_id = 8;
-            break;
+        // console.log(userInputsEmployee.role_id);
+        // console.log(userInputsEmployee.manager_id);
+
+        //if there is not manager table accepts null not zero so we change it
+        if(userInputsEmployee.manager_id === 0) {
+          userInputsEmployee.manager_id = null;
         }
-
-        //setting the manager id to its corresponding id
-        switch(userInputsEmployee.manager_id) {
-          case `None`:
-            userInputsEmployee.manager_id = null;
-            break;
-          case `John Doe`:
-            userInputsEmployee.manager_id = 1;
-            break;
-          case `Ashley Rodriguez`:
-            userInputsEmployee.manager_id = 2;
-            break;
-          case `Kunal Singh`:
-            userInputsEmployee.manager_id = 3;
-            break;
-          case `Sarah Lourd`:
-            userInputsEmployee.manager_id = 6;
-            break;
-        }
-
-        // console.log(userInputsEmployee);
-
-        pool.query(`insert into employee (first_name, last_name, role_id, manager_id) values (${userInputsEmployee.first_name}, ${userInputsEmployee.last_name}, ${userInputsEmployee.role_id}, ${userInputsEmployee.manager_id});`);
+        // console.log(`insert into employee (first_name, last_name, role_id, manager_id) values ('${userInputsEmployee.first_name}', '${userInputsEmployee.last_name}', ${userInputsEmployee.role_id}, ${userInputsEmployee.manager_id});`);
+        pool.query(`insert into employee (first_name, last_name, role_id, manager_id) values ('${userInputsEmployee.first_name}', '${userInputsEmployee.last_name}', ${userInputsEmployee.role_id}, ${userInputsEmployee.manager_id});`);
         break;
       //adding a role
       case `Add Role`:
         const userInputsRole = await addRole();
 
-        //setting the department id to its corresponding id
-         switch(userInputsRole) {
-          case `Sales`:
-            userInputsRole.department_id = 1;
-            break;
-          case `Engineering`:
-            userInputsRole.department_id = 2;
-            break;
-          case `Finance`:
-            userInputsRole.department_id = 3;
-            break;
-          case `Legal`:
-            userInputsRole.department_id = 4;
-            break;
-        }
+        console.log(userInputsRole.department_id);
+        // const deptID =  await pool.query(`select id from department where name = '${userInputsRole.department_id}'`);
+        // console.log(deptID);
         // console.log(`insert into role (title, salary, department_id) values ('${userInputsRole.title}', ${userInputsRole.salary}, ${userInputsRole.department_id});`);
-        pool.query(`insert into role (title, salary, department_id) values ('${userInputsRole.title}', ${userInputsRole.salary}, ${userInputsRole.department_id});`);
 
+        pool.query(`insert into role (title, salary, department_id) values ('${userInputsRole.title}', ${userInputsRole.salary}, ${userInputsRole.department_id});`);
         break;
       //adding a department
       case `Add Department`:
         const userInputsDept = await addDept();
         pool.query(`insert into department (name) values ('${userInputsDept.name}');`);
         break;  
+      //updating an employees role
+      case `Update Employee Role`:
+        const userInputUpdate = await updateEmployee();
+
+        // console.log(userInputUpdate.employee_id);
+        // console.log(userInputUpdate.role_id);
+        
+        pool.query(`update employee set role_id = ${userInputUpdate.role_id} where id = ${userInputUpdate.employee_id};`);
+        break;
       //user selecting quit
       case `Quit`:
         process.exit(0);
