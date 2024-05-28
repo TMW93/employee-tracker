@@ -16,8 +16,7 @@ Change into the directory of the project's folder and run npm i to install depen
 
 ## Usage
 Run node index.js and follow the prompts. Here is a demo:
-![Demo shows program start up and what each of the prompts do]
-(https://drive.google.com/file/d/1uL0e34fu6L5MbUD1CEy95RECaQM3DfGv/view)
+[Demo Video](https://drive.google.com/file/d/1uL0e34fu6L5MbUD1CEy95RECaQM3DfGv/view)
 
 ## Contribution Guidelines
 N/A
