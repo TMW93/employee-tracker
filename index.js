@@ -236,8 +236,6 @@ const viewBudget = async () => {
 
 //main prompter
 const main = async () => {
-  const e = await getManagers();
-  console.log(e);
   let choice = ``;
   while(choice !== `Quit`) {
     // const e = await getEmployees();
