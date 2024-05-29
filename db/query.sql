@@ -89,24 +89,9 @@ select *
 from employee
 where manager_id is null;
 
+-- select just the managers and their employee ids
 select 
-  employee.id as "ID",
-  concat(employee.first_name, ' ', employee.last_name) as "Manager"
+  employee.id as "value",
+  concat(employee.first_name, ' ', employee.last_name) as "name"
   from employee
   where employee.manager_id is null;
-
-
-async function getManagerList() {
-  try {
-    const managerData = await pool.query(
-      `SELECT CONCAT(employee.first_name, ' ', employee.last_name) FROM employee WHERE manager_id IS NULL`
-    );
-    return managerData.rows.map((employee) => ({
-      name: employee.name,
-      value: employee.id,
-    }));
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
-}
