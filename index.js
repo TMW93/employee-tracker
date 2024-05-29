@@ -28,7 +28,7 @@ const getManagers = async () => {
     value: 0,
     name: `None`,
   };
-  const queryDB = `select e1.manager_id as "value", concat(e2.first_name, ' ', e2.last_name) as "name" from employee e1 inner join employee e2 on e1.manager_id = e2.id;`;
+  const queryDB = `select employee.id as "value", concat(employee.first_name, ' ', employee.last_name) as "name" from employee where employee.manager_id is null;`;
   const managers = await pool.query(queryDB);
   (managers.rows).push(initManagers);
   return managers.rows;
@@ -236,6 +236,8 @@ const viewBudget = async () => {
 
 //main prompter
 const main = async () => {
+  const e = await getManagers();
+  console.log(e);
   let choice = ``;
   while(choice !== `Quit`) {
     // const e = await getEmployees();

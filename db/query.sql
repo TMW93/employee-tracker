@@ -67,6 +67,46 @@ select
   where department.id = 2
   group by department.name;
 
+select
+  employee.id,
+  employee.first_name,
+  employee.last_name
+  from employee
+  join role on employee.role_id = role.id
+  join department on role.department_id = department_id
+  where employee.manager_id is null;
+
+select 
+  e1.*
+  from employee e1
+  inner join (
+    select distinct
+      manager_id
+      from employee
+  ) e2 on e2.manager_id = e1.id
+union
+select *
+from employee
+where manager_id is null;
+
+select 
+  employee.id as "ID",
+  concat(employee.first_name, ' ', employee.last_name) as "Manager"
+  from employee
+  where employee.manager_id is null;
 
 
-
+async function getManagerList() {
+  try {
+    const managerData = await pool.query(
+      `SELECT CONCAT(employee.first_name, ' ', employee.last_name) FROM employee WHERE manager_id IS NULL`
+    );
+    return managerData.rows.map((employee) => ({
+      name: employee.name,
+      value: employee.id,
+    }));
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+}
